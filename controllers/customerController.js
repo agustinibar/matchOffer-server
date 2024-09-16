@@ -7,25 +7,22 @@ exports.registerCustomer = async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
-    // Verificar si el email ya existe
     const existingCustomer = await Customer.findOne({ email });
     if (existingCustomer) {
       return res.status(400).json({ message: 'El correo ya está registrado' });
     }
 
-    // Hashear la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Crear nuevo cliente
     const customer = new Customer({
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      type: 'customer'
     });
 
     await customer.save();
 
-    // Crear token
     const token = jwt.sign({ id: customer._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     res.status(201).json({ token, customer });

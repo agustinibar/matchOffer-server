@@ -1,25 +1,37 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const companyUserSchema = new mongoose.Schema({
-  companyName: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  offers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Offer' }]
-});
-
-// Pre-guardar: encriptar la contraseña antes de guardar en la BD
-companyUserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+const companySchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  type: {
+    type: String,
+    default: 'company'
+  },
+  // Otros campos necesarios
+}, {
+  timestamps: true
 });
 
 // Método para comparar la contraseña
-companyUserSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+companySchema.methods.comparePassword = async function(candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
-module.exports = mongoose.model('CompanyUser', companyUserSchema);
+const Company = mongoose.model('Company', companySchema);
+
+module.exports = Company;

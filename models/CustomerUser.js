@@ -17,10 +17,11 @@ const customerSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  savedOffers: [{ 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Offer' 
-  }],
+  type: {
+    type: String,
+    default: 'customer'
+  },
+  // Otros campos necesarios
 }, {
   timestamps: true
 });

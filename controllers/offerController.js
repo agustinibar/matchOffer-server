@@ -32,7 +32,7 @@ exports.createOffer = async (req, res) => {
 // Obtener todas las ofertas
 exports.getOffers = async (req, res) => {
     try {
-      const offers = await Offer.find().populate('company', 'companyName email');
+      const offers = await Offer.find()
   
       if (offers.length === 0) {
         return res.status(404).json({ message: 'No se encontraron ofertas' });

@@ -1,25 +1,34 @@
-const CompanyUser = require('../models/CompanyUser');
+const Company = require('../models/CompanyUser');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
 
 // Registrar nueva empresa
 exports.registerCompanyUser = async (req, res) => {
-  const { companyName, email, password } = req.body;
+  const { name, email, password } = req.body;
 
   try {
-    let user = await CompanyUser.findOne({ email });
-
-    if (user) {
+    const existingCompany = await Company.findOne({ email });
+    if (existingCompany) {
       return res.status(400).json({ message: 'El correo ya está registrado' });
     }
 
-    user = new CompanyUser({ companyName, email, password });
-    await user.save();
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const company = new Company({
+      name,
+      email,
+      password: hashedPassword,
+      type: 'company'
+    });
 
-    res.status(201).json({ token, company: user });
+    await company.save();
+
+    const token = jwt.sign({ id: company._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+    res.status(201).json({ token, company });
   } catch (error) {
-    res.status(500).json({ error: 'Error en el servidor' });
+    res.status(500).json({ error: 'Error al registrar la empresa' });
   }
 };
 
@@ -28,7 +37,7 @@ exports.loginCompanyUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await CompanyUser.findOne({ email });
+    const user = await Company.findOne({ email });
 
     if (!user || !(await user.comparePassword(password))) {
       return res.status(400).json({ message: 'Credenciales inválidas' });
@@ -46,7 +55,7 @@ exports.loginCompanyUser = async (req, res) => {
 exports.getCompanyDetails = async (req, res) => {
   try {
     // Buscar empresa sin hacer populate
-    const company = await CompanyUser.findById(req.user.id);
+    const company = await Company.findById(req.user.id);
 
     if (!company) {
       return res.status(404).json({ message: 'Empresa no encontrada' });
