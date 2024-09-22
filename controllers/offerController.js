@@ -47,10 +47,10 @@ exports.getOffers = async (req, res) => {
   // Obtener oferta por ID
 exports.getOfferById = async (req, res) => {
     const { offerId } = req.params;
+    
   
     try {
-      const offer = await Offer.findById(offerId).populate('company', 'companyName email');
-  
+      const offer = await Offer.findById(offerId);
       if (!offer) {
         return res.status(404).json({ message: 'Oferta no encontrada' });
       }
