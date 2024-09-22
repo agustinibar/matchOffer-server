@@ -51,11 +51,13 @@ exports.getOfferById = async (req, res) => {
   
     try {
       const offer = await Offer.findById(offerId);
+      
+      const company = await CompanyUser.findById({ _id: offer.company });
       if (!offer) {
         return res.status(404).json({ message: 'Oferta no encontrada' });
       }
   
-      res.status(200).json(offer);
+      res.status(200).json({offer, company});
     } catch (error) {
       res.status(500).json({ error: 'Error al obtener la oferta' });
     }
@@ -118,4 +120,32 @@ exports.deleteOffer = async (req, res) => {
     }
   };
 
-  
+  // Obtener oferta por ID con matches
+exports.getOfferByIdWithMatches = async (req, res) => {
+  const { offerId } = req.params;
+
+  try {
+    // Encontrar la oferta por ID
+    const offer = await Offer.findById(offerId);
+
+    if (!offer) {
+      return res.status(404).json({ message: 'Oferta no encontrada' });
+    }
+
+    // Obtener los matches asociados con esta oferta y hacer populate de los clientes
+    const matches = await MatchOffer.find({ offer: offerId })
+      .populate('customer', 'name email') // Solo traer los campos necesarios
+      .select('customer matchedAt');
+
+    // Contar el número de matches
+    const matchCount = matches.length;
+
+    res.status(200).json({
+      offer,
+      matchCount,
+      matches, // Esto incluye la información de los clientes que hicieron match
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener la oferta y los matches' });
+  }
+};

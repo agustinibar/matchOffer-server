@@ -59,11 +59,6 @@ exports.getMatchesForCompany = async (req, res) => {
   
     try {
       const matches = await MatchOffer.find()
-        .populate({
-          path: 'offer',
-          match: { company: companyId } // Filtrar por ofertas de la empresa autenticada
-        })
-        .populate('customer');
   
       // Filtrar para asegurarse de que solo se devuelven los matches que pertenecen a la empresa
       const filteredMatches = matches.filter(match => match.offer !== null);
