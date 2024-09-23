@@ -73,3 +73,20 @@ exports.getMatchesForCompany = async (req, res) => {
     }
   };
   
+// Obtener matches por oferta
+exports.getMatchesByOfferId = async (req, res) => {
+  const { offerId } = req.params; // Obtenemos el offerId desde los parámetros de la URL
+
+  try {
+    // Encontrar todos los MatchOffer que coincidan con el offerId y populamos el campo customer
+    const matches = await MatchOffer.find({ offer: offerId }).populate('customer'); // Poblamos el customer para obtener detalles del cliente
+
+    if (!matches.length) {
+      return res.status(404).json({ message: 'No se encontraron matches para esta oferta' });
+    }
+
+    res.status(200).json({ matches });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener los matches' });
+  }
+};
