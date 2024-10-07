@@ -4,7 +4,7 @@ const Customer = require('../models/CustomerUser');
 
 // Registrar cliente
 exports.registerCustomer = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, image } = req.body; // Se recibe la imagen
 
   try {
     const existingCustomer = await Customer.findOne({ email });
@@ -14,10 +14,20 @@ exports.registerCustomer = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Subir imagen a Cloudinary si se proporciona
+    let imageUrl = '';
+    if (image) {
+      const uploadResponse = await cloudinary.uploader.upload(image, {
+        folder: 'user_profiles', 
+      });
+      imageUrl = uploadResponse.secure_url; 
+    }
+
     const customer = new Customer({
       name,
       email,
       password: hashedPassword,
+      image: imageUrl, 
       type: 'customer'
     });
 
@@ -30,6 +40,7 @@ exports.registerCustomer = async (req, res) => {
     res.status(500).json({ error: 'Error al registrar el cliente' });
   }
 };
+
 
 // Iniciar sesión del cliente
 exports.loginCustomer = async (req, res) => {
@@ -60,16 +71,10 @@ exports.loginCustomer = async (req, res) => {
 // Obtener detalles del cliente autenticado
 exports.getCustomerDetails = async (req, res) => {
   try {
-    // Buscar cliente sin hacer populate
     const customer = await Customer.findById(req.user.id).select('-password');
 
     if (!customer) {
       return res.status(404).json({ message: 'Cliente no encontrado' });
-    }
-
-    // Solo hacer populate si hay ofertas guardadas
-    if (customer.savedOffers.length > 0) {
-      await customer.populate('savedOffers');
     }
 
     res.status(200).json(customer);

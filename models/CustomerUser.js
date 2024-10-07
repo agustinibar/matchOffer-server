@@ -21,7 +21,9 @@ const customerSchema = new mongoose.Schema({
     type: String,
     default: 'customer'
   },
-  // Otros campos necesarios
+  profileImage: {
+    type: String, 
+  },
 }, {
   timestamps: true
 });

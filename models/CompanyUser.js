@@ -22,7 +22,9 @@ const companySchema = new mongoose.Schema({
     type: String,
     default: 'company'
   },
-  // Otros campos necesarios
+  profileImage: {
+    type: String, 
+  },
 }, {
   timestamps: true
 });
