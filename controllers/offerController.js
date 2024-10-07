@@ -1,10 +1,11 @@
 const Offer = require('../models/Offer');
 const CompanyUser = require('../models/CompanyUser');
+const cloudinary = require('cloudinary').v2;
 
 // Crear una nueva oferta
 exports.createOffer = async (req, res) => {
-  const { title, description, price, category } = req.body;
-  const companyId = req.user.id; // Empresa autenticada
+  const { title, description, price, category, image } = req.body; 
+  const companyId = req.user.id; 
 
   try {
     const company = await CompanyUser.findById(companyId);
@@ -13,11 +14,21 @@ exports.createOffer = async (req, res) => {
       return res.status(404).json({ message: 'Empresa no encontrada' });
     }
 
+    // Subir imagen a Cloudinary
+    let imageUrl = '';
+    if (image) {
+      const result = await cloudinary.uploader.upload(image, {
+        folder: 'offers'
+      });
+      imageUrl = result.secure_url;
+    }
+
     const offer = new Offer({
       title,
       description,
       price,
       category,
+      image: imageUrl, // Guardar la URL de la imagen en la oferta
       company: companyId
     });
 
@@ -25,7 +36,8 @@ exports.createOffer = async (req, res) => {
 
     res.status(201).json({ message: 'Oferta creada exitosamente', offer });
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear la oferta' });
+    console.error('Error al crear la oferta:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
 };
 
