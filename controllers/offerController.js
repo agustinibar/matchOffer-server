@@ -15,22 +15,24 @@ exports.createOffer = async (req, res) => {
     }
 
     // Subir imagen a Cloudinary
-    let imageUrl = '';
+    let uploadedImage;
     if (image) {
-      const result = await cloudinary.uploader.upload(image, {
+      uploadedImage = await cloudinary.uploader.upload(image, {
         folder: 'offers'
       });
-      imageUrl = result.secure_url;
     }
-
+    
+    console.log(uploadedImage.secure_url)
     const offer = new Offer({
       title,
       description,
       price,
       category,
-      image: imageUrl, // Guardar la URL de la imagen en la oferta
+      imageUrl: uploadedImage ? uploadedImage.secure_url : null, 
       company: companyId
     });
+
+    console.log(offer)
 
     await offer.save();
 
