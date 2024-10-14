@@ -28,6 +28,10 @@ const offerSchema = new mongoose.Schema({
   imageUrl: {
     type: String, 
   },
+  location: {
+    type: { type: String, enum: ['Point'], required: true },
+    coordinates: { type: [Number], required: true } 
+  },
   createdAt: {
     type: Date,
     default: Date.now

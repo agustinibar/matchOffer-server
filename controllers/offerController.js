@@ -4,7 +4,7 @@ const cloudinary = require('cloudinary').v2;
 
 // Crear una nueva oferta
 exports.createOffer = async (req, res) => {
-  const { title, description, price, category, image } = req.body; 
+  const { title, description, price, category, image, latitude, longitude } = req.body; 
   const companyId = req.user.id; 
 
   try {
@@ -22,14 +22,18 @@ exports.createOffer = async (req, res) => {
       });
     }
     
-    console.log(uploadedImage.secure_url)
+    
     const offer = new Offer({
       title,
       description,
       price,
       category,
       imageUrl: uploadedImage ? uploadedImage.secure_url : null, 
-      company: companyId
+      company: companyId,
+      location: {
+        type: 'Point',
+        coordinates: [longitude, latitude]
+      }
     });
 
     console.log(offer)
@@ -40,6 +44,26 @@ exports.createOffer = async (req, res) => {
   } catch (error) {
     console.error('Error al crear la oferta:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};
+
+//Obtener ofertas cercanas
+exports.getNearbyOffers = async(req, res) => {
+  const { latitude, longitude, maxDistance } = req.query;
+  try {
+    const offers = await Offer.find({
+      location: {
+        $near: {
+          $geometry: { type: 'Point', coordinates: [longitude, latitude] },
+          $maxDistance: maxDistance || 5000 
+        }
+      }
+    });
+
+    res.json(offers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error fetching nearby offers' });
   }
 };
 
