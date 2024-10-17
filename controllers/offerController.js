@@ -32,7 +32,7 @@ exports.createOffer = async (req, res) => {
       company: companyId,
       location: {
         type: 'Point',
-        coordinates: [longitude, latitude]
+        coordinates: [parseFloat(longitude), parseFloat(latitude)]
       }
     });
 
@@ -49,13 +49,21 @@ exports.createOffer = async (req, res) => {
 
 //Obtener ofertas cercanas
 exports.getNearbyOffers = async(req, res) => {
-  const { latitude, longitude, maxDistance } = req.query;
+
+  const latitude = parseFloat(req.query.latitude);
+  const longitude = parseFloat(req.query.longitude);
+  const maxDistance = parseInt(req.query.maxDistance) || 5000;
+
+  if (!latitude || !longitude) {
+    return res.status(400).json({ message: 'Ubicación (latitude, longitude) es requerida' });
+  }
+  
   try {
     const offers = await Offer.find({
       location: {
         $near: {
-          $geometry: { type: 'Point', coordinates: [longitude, latitude] },
-          $maxDistance: maxDistance || 5000 
+          $geometry: { type: 'Point', coordinates: [parseFloat(longitude), parseFloat(latitude)] },
+          $maxDistance: parseInt(maxDistance) || 5000 
         }
       }
     });
